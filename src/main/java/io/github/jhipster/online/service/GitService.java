@@ -148,10 +148,26 @@ public class GitService {
         }
     }
 
-    public void cleanUpDirectory(File workingDir) throws IOException {
-        log.debug("Cleaning up directory {}", workingDir);
-        FileUtils.deleteDirectory(workingDir);
-    }
+	public void cleanUpDirectory(File workingDir) throws IOException {
+		log.debug("Cleaning up directory {}", workingDir);
+		for (int i = 0; i < 5; i++) {
+			try {
+				FileUtils.forceDelete(workingDir);
+				log.debug("File deleted successfully.");
+				break; // If deletion is successful, exit the loop
+			} catch (IOException e) {
+				System.err.println("Error deleting the file: " + e.getMessage());
+				e.printStackTrace();
+
+				// Wait for a while before retrying
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
+	}
 
     private CredentialsProvider getCredentialProvider(User user, GitProvider gitProvider) {
         if (gitProvider.equals(GitProvider.GITHUB)) {

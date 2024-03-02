@@ -25,6 +25,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -121,10 +124,20 @@ public class JHipsterService {
 
     void runProcess(String generationId, File workingDir, String... command) throws IOException {
         log.info("Running command: \"{}\" in directory:  \"{}\"", command, workingDir);
-        ProcessBuilder processBuilder = new ProcessBuilder()
-            .directory(workingDir)
-            .command(command)
-            .redirectError(ProcessBuilder.Redirect.DISCARD);
+        String osName = System.getProperty("os.name").toLowerCase();
+        ProcessBuilder processBuilder;
+        if (osName.contains("win")) {
+            // For Windows
+            List<String> fullCommand = new ArrayList<>();
+            fullCommand.add("cmd");
+            fullCommand.add("/c");
+            fullCommand.addAll(Arrays.asList(command));
+            processBuilder = new ProcessBuilder().directory(workingDir).command(fullCommand).redirectError(ProcessBuilder.Redirect.DISCARD);
+        } else {
+            // For other operating systems
+            processBuilder = new ProcessBuilder().directory(workingDir).command(command).redirectError(ProcessBuilder.Redirect.DISCARD);
+        }
+        
         Process p = processBuilder.start();
 
         taskExecutor.execute(
